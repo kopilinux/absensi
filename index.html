@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Absensi Skeuomorphic V3 (Modal)</title>
+    <title>Aplikasi Absensi Skeuomorphic V6 (Firestore)</title>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <style>
@@ -68,11 +68,10 @@
             margin-bottom: 15px;
         }
 
-        /* Tombol Umum */
         button {
             font-family: 'Roboto', sans-serif;
-            font-size: 0.95em; 
-            padding: 10px 20px;
+            font-size: 0.9em; 
+            padding: 10px 18px;
             border-radius: 50px;
             border: none;
             color: #555;
@@ -90,6 +89,19 @@
             box-shadow: inset 4px 4px 8px #b9b9b9, inset -4px -4px 8px #ffffff;
             color: #333;
         }
+        button.action-button { 
+            font-size: 0.8em;
+            padding: 6px 12px;
+            margin-right: 5px;
+        }
+        button.action-button-delete {
+             background: linear-gradient(145deg, #ffcaca, #ffaaaa);
+             color: #900;
+        }
+         button.action-button-delete:hover {
+             background: linear-gradient(145deg, #ffbaba, #ff9a9a);
+        }
+
         button.stop-scan { 
             background: linear-gradient(145deg, #ffdddd, #ffb0b0); color: #a00;
         }
@@ -105,23 +117,42 @@
          button.modal-close-button:hover { background: linear-gradient(145deg, #e0a0a0, #d08080); }
 
 
-        input[type="text"] {
+        input[type="text"], input[type="date"], input[type="tel"], textarea {
             font-family: 'Roboto', sans-serif;
-            padding: 12px;
+            padding: 10px; 
             border-radius: 10px;
             border: none;
             background: #e8e8e8;
             box-shadow: inset 4px 4px 8px #c0c0c0, inset -4px -4px 8px #ffffff;
-            width: calc(100% - 26px); 
-            max-width: 300px;
-            font-size: 1em;
+            width: calc(100% - 22px); 
+            max-width: 320px; 
+            font-size: 0.95em; 
             color: #333;
-            margin-bottom: 10px; 
+            margin-bottom: 12px; 
         }
-        input[type="text"]:focus {
+        textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        input[type="text"]:focus, input[type="date"]:focus, input[type="tel"]:focus, textarea:focus {
             outline: none;
             box-shadow: inset 6px 6px 12px #b9b9b9, inset -6px -6px 12px #ffffff, 0 0 5px #88aaff;
         }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            width: 100%;
+        }
+        .form-group label {
+            font-size: 0.85em;
+            color: #555;
+            margin-bottom: 4px;
+            text-align: left;
+            width: 100%;
+            max-width: 320px;
+        }
+
 
         #status-message {
             text-align: center;
@@ -135,7 +166,6 @@
         .status-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; box-shadow: 0 0 10px #f5c6cb; }
         .status-info { background-color: #cce5ff; color: #004085; border: 1px solid #b8daff; box-shadow: 0 0 10px #b8daff; }
 
-        /* Modal Styling */
         .modal {
             display: none; 
             position: fixed; 
@@ -146,17 +176,17 @@
             height: 100%; 
             overflow: auto; 
             background-color: rgba(0,0,0,0.6); 
-            padding-top: 60px;
+            padding-top: 30px; 
             backdrop-filter: blur(5px);
         }
         .modal-content {
             background: linear-gradient(145deg, #f0f0f0, #cacaca);
-            margin: 5% auto;
-            padding: 25px;
+            margin: 2% auto; 
+            padding: 20px; 
             border-radius: 20px;
             box-shadow: 10px 10px 20px rgba(0,0,0,0.3), -10px -10px 20px rgba(255,255,255,0.1); 
-            width: 85%;
-            max-width: 550px;
+            width: 90%;
+            max-width: 600px; 
             position: relative;
             display: flex;
             flex-direction: column;
@@ -171,32 +201,40 @@
             align-items: center;
             margin-bottom: 10px;
         }
+        .generated-id-display {
+            font-size: 0.9em; color: #666; margin-bottom: 10px; background-color: #dddddd;
+            padding: 8px; border-radius: 5px; box-shadow: inset 2px 2px 4px #bcbcbc, inset -2px -2px 4px #ffffff;
+            text-align: center;
+        }
+        .detail-field { margin-bottom: 8px; width:100%; max-width: 320px;}
+        .detail-field strong { color: #444; }
+        .detail-field span, .detail-field input, .detail-field textarea { 
+            display: block; width: 100%; 
+            background: #e0e0e0; padding: 8px; border-radius: 6px; 
+            box-shadow: inset 3px 3px 6px #c5c5c5, inset -3px -3px 6px #fbfbfb;
+        }
+         .detail-field input[type="text"], .detail-field input[type="date"], .detail-field input[type="tel"], .detail-field textarea {
+            background: #e8e8e8; 
+        }
+
 
         #camera-feed-modal { 
-            width: 100%;
-            max-width: 320px;
-            height: auto;
-            border-radius: 10px;
-            border: 4px solid #bbb;
-            box-shadow: 0 0 8px rgba(0,0,0,0.15);
-            background-color: #333;
+            width: 100%; max-width: 320px; height: auto; border-radius: 10px;
+            border: 4px solid #bbb; box-shadow: 0 0 8px rgba(0,0,0,0.15); background-color: #333;
         }
         #generated-qr-code-container-modal {
             margin-top: 10px; padding: 10px; background: #ddd; border-radius: 8px;
             box-shadow: inset 2px 2px 5px #bbb, inset -2px -2px 5px #fff;
-            min-height: 130px; display: flex; justify-content: center; align-items: center;
-            width: auto; 
+            min-height: 130px; display: flex; justify-content: center; align-items: center; width: auto; 
         }
         #generated-qr-code-img-modal {
             max-width: 160px; height: auto; border: 3px solid #fff; border-radius: 5px;
         }
-        .modal-button-group { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top:10px;}
+        .modal-button-group { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top:15px;}
 
-        /* Daftar Hadir & Karyawan */
+
         #attendance-log-list {
-            list-style-type: none; padding: 0; 
-            max-height: 200px; /* Disesuaikan dari 180px */
-            overflow-y: auto; /* Membuat scroll jika konten melebihi max-height */
+            list-style-type: none; padding: 0; max-height: 180px; overflow-y: auto; 
             border: 1px solid #d0d0d0; border-radius: 10px; background: #e0e0e0;
             padding: 10px; box-shadow: inset 3px 3px 6px #bcbcbc, inset -3px -3px 6px #ffffff;
         }
@@ -206,21 +244,22 @@
             box-shadow: 4px 4px 8px #c8c8c8, -4px -4px 8px #ffffff;
             display: flex; justify-content: space-between; align-items: center; font-size: 0.9em;
         }
-        #attendance-log-list li .id-data { font-weight: bold; color: #337ab7; }
+        #attendance-log-list li .employee-name-log { font-weight: bold; color: #337ab7; }
         #attendance-log-list li .timestamp { font-size: 0.8em; color: #777; }
 
         .table-container {
-            max-height: 250px; /* Disesuaikan dari 220px */
-            overflow-y: auto; /* Membuat scroll jika konten melebihi max-height */
-            padding-right: 5px; 
-            background: #e0e0e0; border-radius: 10px; padding: 10px;
+            max-height: 300px; 
+            overflow-y: auto; overflow-x: auto; 
+            padding-right: 5px; background: #e0e0e0; border-radius: 10px; padding: 10px;
             box-shadow: inset 3px 3px 6px #bcbcbc, inset -3px -3px 6px #ffffff;
         }
         #employee-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
         #employee-table th, #employee-table td {
-            padding: 9px 10px; text-align: left;
+            padding: 8px 10px; 
+            text-align: left;
             background: linear-gradient(145deg, #f5f5f5, #dcdcdc);
-            box-shadow: 3px 3px 6px #c8c8c8, -3px -3px 6px #ffffff; font-size: 0.9em;
+            box-shadow: 3px 3px 6px #c8c8c8, -3px -3px 6px #ffffff; font-size: 0.9em; 
+            white-space: nowrap; 
         }
         #employee-table th {
             background: linear-gradient(145deg, #e0e0e0, #c0c0c0); color: #444;
@@ -229,36 +268,55 @@
         #employee-table th:first-child, #employee-table td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
         #employee-table th:last-child, #employee-table td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
         #employee-table td.points-cell { font-weight: bold; text-align: center; color: #2a7e2a; }
+        #employee-table td.actions-cell { text-align: center; white-space: nowrap;}
 
         #qr-canvas-modal { display: none; } 
+        
+        .delete-confirmation {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #ffe0e0;
+            border: 1px solid #ffb0b0;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .delete-confirmation p { margin: 0 0 10px 0; font-weight: bold; color: #900;}
 
+
+        @media (max-width: 768px) {
+            .app-container { max-width: 95%; }
+            #employee-table th, #employee-table td { font-size: 0.85em; padding: 7px 9px;} 
+            button.action-button { font-size: 0.78em; padding: 5px 10px;}
+        }
         @media (max-width: 600px) {
-            .app-container { padding: 15px; gap: 15px; }
             .header h1 { font-size: 1.5em; }
             .header-actions { gap: 10px; }
             .header-actions button { padding: 8px 15px; font-size: 0.85em; }
-            .modal-content { width: 90%; padding: 20px; }
-            #camera-feed-modal { max-width: 280px; }
-            #generated-qr-code-img-modal { max-width: 130px; }
-            input[type="text"] { padding: 10px; font-size: 0.9em; }
+            .modal-content { width: 95%; padding: 15px; }
+            #camera-feed-modal { max-width: 100%; }
+            #generated-qr-code-img-modal { max-width: 120px; }
+            input[type="text"], input[type="date"], input[type="tel"], textarea { font-size: 0.9em; padding: 8px;}
+            .form-group label { font-size: 0.8em;}
         }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div class="header">
-            <h1>Absensi & Poin Karyawan</h1>
+            <h1>Absensi & Poin Karyawan (Firestore)</h1>
             <div class="header-actions">
                 <button id="open-scan-modal-button">Pindai QR Absensi</button>
-                <button id="open-register-modal-button">Registrasi Karyawan</button>
+                <button id="open-register-modal-button">Registrasi Karyawan Baru</button>
             </div>
         </div>
         
-        <div id="status-message">Selamat datang! Pilih aksi di atas.</div>
+        <div id="status-message">Menginisialisasi Firebase...</div>
+        <div id="user-id-display" style="text-align: center; font-size: 0.8em; color: #666; margin-bottom: 10px;"></div>
+
 
         <div class="section manual-entry-section">
             <h3>Input Absensi Manual</h3>
-            <input type="text" id="manual-id-input" placeholder="Masukkan ID Karyawan">
+            <input type="text" id="manual-id-input" placeholder="Masukkan ID Karyawan (mis: ID0001)">
             <button id="add-manual-button">Tambah Manual & Dapat Poin</button>
         </div>
 
@@ -272,7 +330,12 @@
             <div class="table-container">
                 <table id="employee-table">
                     <thead>
-                        <tr><th>ID Karyawan</th><th>Nama</th><th>Poin</th></tr>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nama</th>
+                            <th>Poin</th>
+                            <th>Aksi</th>
+                        </tr>
                     </thead>
                     <tbody id="employee-table-body"></tbody>
                 </table>
@@ -282,43 +345,82 @@
 
     <div id="scan-qr-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Pindai QR Absensi</h3>
-                <button class="modal-close-button" id="close-scan-modal-button">&times;</button>
-            </div>
+            <div class="modal-header"><h3>Pindai QR Absensi</h3><button class="modal-close-button" id="close-scan-modal-button">&times;</button></div>
             <video id="camera-feed-modal" playsinline></video>
             <canvas id="qr-canvas-modal"></canvas> 
-            <div class="modal-button-group">
-                <button id="start-scan-button-modal">Mulai Pindai</button>
-                <button id="stop-scan-button-modal" class="stop-scan" style="display: none;">Hentikan Pindai</button>
-            </div>
+            <div class="modal-button-group"><button id="start-scan-button-modal">Mulai Pindai</button><button id="stop-scan-button-modal" class="stop-scan" style="display: none;">Hentikan Pindai</button></div>
             <div id="scan-status-message-modal" style="text-align:center; margin-top:10px; font-weight:bold; min-height:18px;"></div>
         </div>
     </div>
 
     <div id="register-employee-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Registrasi Karyawan & Buat QR</h3>
-                <button class="modal-close-button" id="close-register-modal-button">&times;</button>
-            </div>
-            <input type="text" id="employee-id-input-modal" placeholder="ID Karyawan (unik)">
-            <input type="text" id="employee-name-input-modal" placeholder="Nama Karyawan">
+            <div class="modal-header"><h3>Registrasi Karyawan Baru</h3><button class="modal-close-button" id="close-register-modal-button">&times;</button></div>
+            <div id="generated-id-display-modal" class="generated-id-display" style="display:none;"></div>
+            <div class="form-group"><label for="employee-name-input-modal">Nama Karyawan:</label><input type="text" id="employee-name-input-modal" placeholder="Nama Lengkap"></div>
+            <div class="form-group"><label for="employee-address-input-modal">Alamat:</label><textarea id="employee-address-input-modal" placeholder="Alamat Lengkap"></textarea></div>
+            <div class="form-group"><label for="employee-doj-input-modal">Tanggal Masuk:</label><input type="date" id="employee-doj-input-modal"></div>
+            <div class="form-group"><label for="employee-phone-input-modal">No. HP:</label><input type="tel" id="employee-phone-input-modal" placeholder="08xxxxxxxxxx"></div>
             <button id="register-employee-button-modal">Daftarkan & Buat QR</button>
-            <div id="generated-qr-code-container-modal">
-                <img id="generated-qr-code-img-modal" alt="QR Code akan muncul di sini">
-            </div>
-             <div id="register-status-message-modal" style="text-align:center; margin-top:10px; font-weight:bold; min-height:18px;"></div>
+            <div id="generated-qr-code-container-modal"><img id="generated-qr-code-img-modal" alt="QR Code akan muncul di sini"></div>
+            <div id="register-status-message-modal" style="text-align:center; margin-top:10px; font-weight:bold; min-height:18px;"></div>
         </div>
     </div>
 
-    <script>
+    <div id="employee-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Detail Karyawan</h3><button class="modal-close-button" id="close-details-modal-button">&times;</button></div>
+            <div id="employee-detail-content">
+                </div>
+            <div id="delete-employee-confirmation" class="delete-confirmation" style="display:none;">
+                <p>Anda yakin ingin menghapus karyawan ini?</p>
+                <button id="confirm-delete-employee-button" class="action-button-delete">Ya, Hapus</button>
+                <button id="cancel-delete-employee-button">Batal</button>
+            </div>
+            <div class="modal-button-group">
+                <button id="edit-employee-button">Edit Data</button>
+                <button id="save-employee-changes-button" style="display:none;">Simpan Perubahan</button>
+                <button id="cancel-edit-employee-button" style="display:none;">Batal Edit</button>
+                <button id="delete-employee-button" class="action-button-delete">Hapus Karyawan</button>
+            </div>
+            <div id="details-status-message-modal" style="text-align:center; margin-top:10px; font-weight:bold; min-height:18px;"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase SDK Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc, 
+            getDoc, 
+            addDoc, 
+            updateDoc, 
+            deleteDoc, 
+            collection, 
+            query, 
+            where, 
+            getDocs, 
+            onSnapshot,
+            Timestamp,
+            orderBy, // Import orderBy
+            limit // Import limit
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         // Elemen DOM Utama
         const manualIdInput = document.getElementById('manual-id-input');
         const addManualButton = document.getElementById('add-manual-button');
         const statusMessage = document.getElementById('status-message'); 
         const attendanceLogList = document.getElementById('attendance-log-list');
         const employeeTableBody = document.getElementById('employee-table-body');
+        const userIdDisplay = document.getElementById('user-id-display');
 
         // Elemen DOM Modal Scan QR
         const scanQrModal = document.getElementById('scan-qr-modal');
@@ -335,47 +437,131 @@
         const registerEmployeeModal = document.getElementById('register-employee-modal');
         const openRegisterModalButton = document.getElementById('open-register-modal-button');
         const closeRegisterModalButton = document.getElementById('close-register-modal-button');
-        const employeeIdInputModal = document.getElementById('employee-id-input-modal');
         const employeeNameInputModal = document.getElementById('employee-name-input-modal');
+        const employeeAddressInputModal = document.getElementById('employee-address-input-modal');
+        const employeeDojInputModal = document.getElementById('employee-doj-input-modal'); 
+        const employeePhoneInputModal = document.getElementById('employee-phone-input-modal');
         const registerEmployeeButtonModal = document.getElementById('register-employee-button-modal');
         const generatedQrCodeImgModal = document.getElementById('generated-qr-code-img-modal');
         const registerStatusMessageModal = document.getElementById('register-status-message-modal');
+        const generatedIdDisplayModal = document.getElementById('generated-id-display-modal');
 
-        // State Aplikasi
+        // Elemen DOM Modal Detail/Edit Karyawan
+        const employeeDetailsModal = document.getElementById('employee-details-modal');
+        const closeDetailsModalButton = document.getElementById('close-details-modal-button');
+        const employeeDetailContent = document.getElementById('employee-detail-content');
+        const editEmployeeButton = document.getElementById('edit-employee-button');
+        const saveEmployeeChangesButton = document.getElementById('save-employee-changes-button');
+        const cancelEditEmployeeButton = document.getElementById('cancel-edit-employee-button');
+        const deleteEmployeeButton = document.getElementById('delete-employee-button');
+        const detailsStatusMessageModal = document.getElementById('details-status-message-modal');
+        const deleteEmployeeConfirmation = document.getElementById('delete-employee-confirmation');
+        const confirmDeleteEmployeeButton = document.getElementById('confirm-delete-employee-button');
+        const cancelDeleteEmployeeButton = document.getElementById('cancel-delete-employee-button');
+
+        // Firebase State
+        let app;
+        let auth;
+        let db;
+        let userId; // Akan diisi setelah auth state berubah
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Default untuk pengembangan lokal
+
+        // State Aplikasi Lokal
         let stream = null;
         let scanning = false;
-        let scannedIDsToday = new Set(); 
-        let employeesData = []; 
+        // let scannedIDsToday = new Set(); // Akan dikelola oleh Firestore
+        let employeesData = []; // Cache lokal data karyawan, disinkronkan dengan Firestore
+        let employeeCounter = 0; 
+        let currentEditingEmployeeId = null; 
 
+        // --- Inisialisasi Firebase ---
+        async function initializeFirebase() {
+            try {
+                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                if (!firebaseConfig.apiKey) { // Fallback untuk pengembangan lokal jika config tidak ada
+                    showStatus("Konfigurasi Firebase tidak ditemukan. Mode pengembangan lokal.", "error");
+                    console.error("Firebase config not found. Ensure __firebase_config is set.");
+                    // Anda bisa set config dummy di sini jika perlu untuk tes lokal tanpa Canvas
+                    // firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "..." }; 
+                    // return; // Hentikan jika tidak ada config
+                }
+                
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userIdDisplay.textContent = `User ID: ${userId}`;
+                        showStatus("Firebase terautentikasi. Siap digunakan.", "success");
+                        await loadInitialEmployeeCounter(); // Muat counter setelah auth
+                        setupEmployeeListener(); // Mulai listen data karyawan
+                        setupAttendanceLogListener(); // Mulai listen log absensi hari ini
+                    } else {
+                        userIdDisplay.textContent = "User tidak terautentikasi.";
+                        showStatus("Autentikasi Firebase gagal atau tidak ada user.", "error");
+                        // Handle jika user tidak terautentikasi (misalnya, disable fitur)
+                    }
+                });
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    console.warn("Initial auth token not found, attempting anonymous sign-in.");
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Error initializing Firebase: ", error);
+                showStatus(`Error inisialisasi Firebase: ${error.message}`, "error");
+            }
+        }
+        
         // --- Fungsi Utilitas ---
         function showStatus(message, type = 'info', target = 'main') {
             let el;
             if (target === 'scan-modal') el = scanStatusMessageModal;
             else if (target === 'register-modal') el = registerStatusMessageModal;
+            else if (target === 'details-modal') el = detailsStatusMessageModal;
             else el = statusMessage;
 
             el.textContent = message;
             el.className = ''; 
-            if (type === 'success') el.classList.add('status-success');
-            else if (type === 'error') el.classList.add('status-error');
-            else el.classList.add('status-info');
+            el.classList.add(`status-${type}`); 
         }
 
-        function getCurrentDateString() { return new Date().toLocaleDateString('id-ID'); }
+        function getCurrentDateString() { return new Date().toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('-'); } // Format YYYY-MM-DD
 
         // --- Modal Handling ---
         openScanModalButton.onclick = () => { scanQrModal.style.display = 'block'; showStatus("Arahkan kamera ke QR Code.", 'info', 'scan-modal'); };
         closeScanModalButton.onclick = closeScanQrModal;
         
-        openRegisterModalButton.onclick = () => { registerEmployeeModal.style.display = 'block'; showStatus("Isi detail karyawan.", 'info', 'register-modal'); };
-        closeRegisterModalButton.onclick = () => { registerEmployeeModal.style.display = 'none'; generatedQrCodeImgModal.src = ''; registerStatusMessageModal.textContent = ''; };
+        openRegisterModalButton.onclick = () => { 
+            registerEmployeeModal.style.display = 'block'; 
+            clearRegisterForm();
+            showStatus("Isi data karyawan baru.", 'info', 'register-modal'); 
+        };
+        closeRegisterModalButton.onclick = () => { 
+            registerEmployeeModal.style.display = 'none'; 
+            clearRegisterForm();
+        };
+        
+        closeDetailsModalButton.onclick = () => {
+            employeeDetailsModal.style.display = 'none';
+            currentEditingEmployeeId = null;
+            resetDetailsModalToViewMode(); 
+        };
 
         window.onclick = (event) => {
             if (event.target == scanQrModal) closeScanQrModal();
             if (event.target == registerEmployeeModal) {
-                registerEmployeeModal.style.display = 'none';
-                generatedQrCodeImgModal.src = ''; 
-                registerStatusMessageModal.textContent = '';
+                registerEmployeeModal.style.display = 'none'; 
+                clearRegisterForm();
+            }
+            if (event.target == employeeDetailsModal) {
+                employeeDetailsModal.style.display = 'none';
+                currentEditingEmployeeId = null;
+                resetDetailsModalToViewMode();
             }
         };
         
@@ -384,59 +570,295 @@
             stopScan(); 
             scanStatusMessageModal.textContent = '';
         }
+        function clearRegisterForm() {
+            employeeNameInputModal.value = '';
+            employeeAddressInputModal.value = '';
+            employeeDojInputModal.value = '';
+            employeePhoneInputModal.value = '';
+            generatedIdDisplayModal.style.display = 'none';
+            generatedQrCodeImgModal.src = ''; 
+            registerStatusMessageModal.textContent = '';
+        }
 
-
-        // --- Fungsi Registrasi Karyawan (di Modal) ---
-        function registerEmployee() {
-            const id = employeeIdInputModal.value.trim();
-            const name = employeeNameInputModal.value.trim();
-
-            if (!id || !name) {
-                showStatus("ID dan Nama Karyawan tidak boleh kosong.", 'error', 'register-modal');
-                return;
-            }
-            if (employeesData.some(emp => emp.id === id)) {
-                showStatus(`Karyawan dengan ID ${id} sudah terdaftar.`, 'error', 'register-modal');
-                return;
-            }
-
-            const newEmployee = { id, name, points: 0 };
-            employeesData.push(newEmployee);
-            
+        // --- Load Initial Employee Counter ---
+        async function loadInitialEmployeeCounter() {
+            if (!db) return;
             try {
-                let tempCanvas = document.createElement('canvas');
-                new QRious({ element: tempCanvas, value: id, size: 160, level: 'H'}); 
-                generatedQrCodeImgModal.src = tempCanvas.toDataURL();
-
-                showStatus(`Karyawan ${name} (ID: ${id}) berhasil didaftarkan.`, 'success', 'register-modal');
-                showStatus(`Karyawan ${name} terdaftar.`, 'success'); 
-                employeeIdInputModal.value = '';
-                employeeNameInputModal.value = '';
-                updateEmployeeListTable();
-            } catch (e) {
-                console.error("Error generating QR Code:", e);
-                showStatus("Gagal membuat QR Code: " + e.message, 'error', 'register-modal');
+                const employeesRef = collection(db, `artifacts/${appId}/public/data/employees`);
+                // Query untuk mendapatkan dokumen dengan ID tertinggi (misalnya, "ID9999")
+                // Ini bisa menjadi kompleks jika ID tidak selalu berurutan atau ada yang dihapus.
+                // Cara sederhana: fetch semua, lalu cari max. Tidak ideal untuk data besar.
+                // Untuk aplikasi nyata, counter terpisah di Firestore lebih baik.
+                // Untuk sekarang, kita akan coba fetch dan parse.
+                const q = query(employeesRef); // Tidak ada orderBy bawaan untuk string seperti "ID0001"
+                const querySnapshot = await getDocs(q);
+                let maxIdNum = 0;
+                querySnapshot.forEach(doc => {
+                    const idNum = parseInt(doc.id.replace("ID", ""), 10);
+                    if (!isNaN(idNum) && idNum > maxIdNum) {
+                        maxIdNum = idNum;
+                    }
+                });
+                employeeCounter = maxIdNum;
+                console.log("Initial employee counter loaded:", employeeCounter);
+            } catch (error) {
+                console.error("Error loading initial employee counter:", error);
+                showStatus("Gagal memuat counter karyawan.", "error");
             }
         }
 
-        // --- Fungsi Update Daftar Karyawan di Tabel Utama ---
-        function updateEmployeeListTable() {
+
+        // --- CRUD Karyawan dengan Firestore ---
+        async function registerEmployee() {
+            if (!db || !userId) {
+                showStatus("Firestore tidak siap atau user tidak terautentikasi.", 'error', 'register-modal');
+                return;
+            }
+            const name = employeeNameInputModal.value.trim();
+            const address = employeeAddressInputModal.value.trim();
+            const doj = employeeDojInputModal.value; // YYYY-MM-DD
+            const phone = employeePhoneInputModal.value.trim();
+
+            if (!name || !address || !doj || !phone) {
+                showStatus("Semua field registrasi wajib diisi.", 'error', 'register-modal');
+                return;
+            }
+
+            // Increment counter sebelum membuat ID untuk memastikan keunikan percobaan berikutnya
+            const nextCounter = employeeCounter + 1; 
+            const id = "ID" + String(nextCounter).padStart(4, '0');
+
+            const newEmployeeData = { 
+                id, // Simpan juga ID yang digenerate sebagai field
+                name, 
+                address, 
+                doj, // Simpan sebagai string YYYY-MM-DD
+                phone, 
+                points: 0,
+                registeredAt: Timestamp.now() // Tambah timestamp registrasi
+            };
+            
+            try {
+                const employeeDocRef = doc(db, `artifacts/${appId}/public/data/employees`, id);
+                // Cek dulu apakah ID ini sudah ada (seharusnya tidak jika counter benar)
+                const docSnap = await getDoc(employeeDocRef);
+                if (docSnap.exists()) {
+                    showStatus(`Error: ID ${id} sudah ada. Coba refresh dan daftar lagi.`, 'error', 'register-modal');
+                    // Counter mungkin perlu disinkronkan ulang jika ini terjadi
+                    await loadInitialEmployeeCounter(); // Coba sinkronkan ulang
+                    return;
+                }
+
+                await setDoc(employeeDocRef, newEmployeeData);
+                employeeCounter = nextCounter; // Update counter lokal setelah berhasil
+
+                let tempCanvas = document.createElement('canvas');
+                new QRious({ element: tempCanvas, value: id, size: 160, level: 'H'}); 
+                generatedQrCodeImgModal.src = tempCanvas.toDataURL();
+                
+                generatedIdDisplayModal.textContent = `ID Karyawan Baru: ${id}`;
+                generatedIdDisplayModal.style.display = 'block';
+
+                showStatus(`Karyawan ${name} (ID: ${id}) berhasil didaftarkan.`, 'success', 'register-modal');
+                showStatus(`Karyawan ${name} (ID: ${id}) terdaftar.`, 'success'); 
+                // updateEmployeeListTable() akan dipicu oleh listener
+            } catch (e) {
+                console.error("Error registering employee or generating QR Code:", e);
+                showStatus("Gagal mendaftarkan karyawan: " + e.message, 'error', 'register-modal');
+                generatedIdDisplayModal.style.display = 'none';
+            }
+        }
+        
+        function setupEmployeeListener() {
+            if (!db || !userId) return;
+            const employeesRef = collection(db, `artifacts/${appId}/public/data/employees`);
+            // Untuk konsistensi urutan, kita bisa order by 'id' atau 'registeredAt'
+            const q = query(employeesRef); // Tidak ada orderBy yang efektif untuk "IDxxxx" tanpa custom index
+
+            onSnapshot(q, (querySnapshot) => {
+                const localEmployees = [];
+                querySnapshot.forEach((doc) => {
+                    localEmployees.push({ ...doc.data(), firestoreId: doc.id }); // Simpan ID dokumen Firestore
+                });
+                // Urutkan secara manual berdasarkan ID string "IDxxxx"
+                employeesData = localEmployees.sort((a, b) => {
+                    const idA = parseInt(a.id.replace("ID", ""), 10);
+                    const idB = parseInt(b.id.replace("ID", ""), 10);
+                    return idA - idB;
+                });
+                updateEmployeeListTableDOM();
+            }, (error) => {
+                console.error("Error listening to employees collection: ", error);
+                showStatus("Gagal memuat data karyawan secara real-time.", "error");
+            });
+        }
+
+
+        function updateEmployeeListTableDOM() { // Ganti nama agar tidak konflik
             employeeTableBody.innerHTML = ''; 
             employeesData.forEach(emp => {
                 const row = employeeTableBody.insertRow();
-                row.insertCell().textContent = emp.id;
+                row.insertCell().textContent = emp.id; // Ini adalah ID "IDxxxx"
                 row.insertCell().textContent = emp.name;
                 const pointsCell = row.insertCell();
                 pointsCell.textContent = emp.points;
                 pointsCell.classList.add('points-cell');
+                
+                const actionsCell = row.insertCell();
+                actionsCell.classList.add('actions-cell');
+                const detailsButton = document.createElement('button');
+                detailsButton.textContent = 'Detail';
+                detailsButton.classList.add('action-button');
+                detailsButton.onclick = () => openEmployeeDetailsModal(emp.id); // Gunakan ID "IDxxxx"
+                actionsCell.appendChild(detailsButton);
             });
         }
+
+        function openEmployeeDetailsModal(employeeId) { // employeeId adalah "IDxxxx"
+            currentEditingEmployeeId = employeeId;
+            const employee = employeesData.find(emp => emp.id === employeeId);
+            if (!employee) return;
+
+            renderEmployeeDetails(employee, false); 
+            employeeDetailsModal.style.display = 'block';
+            showStatus(`Melihat detail ${employee.name}`, 'info', 'details-modal');
+        }
         
+        function renderEmployeeDetails(employee, isEditMode) {
+            employeeDetailContent.innerHTML = `
+                <div class="detail-field"><strong>ID Karyawan:</strong> <span>${employee.id}</span></div>
+                <div class="detail-field"><strong>Nama:</strong> 
+                    ${isEditMode ? `<input type="text" id="detail-name-edit" value="${employee.name}">` : `<span>${employee.name}</span>`}
+                </div>
+                <div class="detail-field"><strong>Alamat:</strong> 
+                    ${isEditMode ? `<textarea id="detail-address-edit">${employee.address}</textarea>` : `<span>${employee.address}</span>`}
+                </div>
+                <div class="detail-field"><strong>Tanggal Masuk:</strong> 
+                    ${isEditMode ? `<input type="date" id="detail-doj-edit" value="${employee.doj}">` : `<span>${employee.doj ? new Date(employee.doj + 'T00:00:00').toLocaleDateString('id-ID') : '-'}</span>`}
+                </div>
+                <div class="detail-field"><strong>No. HP:</strong> 
+                    ${isEditMode ? `<input type="tel" id="detail-phone-edit" value="${employee.phone}">` : `<span>${employee.phone}</span>`}
+                </div>
+                <div class="detail-field"><strong>Poin:</strong> <span>${employee.points}</span></div>
+            `;
+
+            if (isEditMode) {
+                editEmployeeButton.style.display = 'none';
+                deleteEmployeeButton.style.display = 'none';
+                saveEmployeeChangesButton.style.display = 'inline-block';
+                cancelEditEmployeeButton.style.display = 'inline-block';
+            } else {
+                editEmployeeButton.style.display = 'inline-block';
+                deleteEmployeeButton.style.display = 'inline-block';
+                saveEmployeeChangesButton.style.display = 'none';
+                cancelEditEmployeeButton.style.display = 'none';
+            }
+        }
+        
+        function resetDetailsModalToViewMode() {
+            editEmployeeButton.style.display = 'inline-block';
+            deleteEmployeeButton.style.display = 'inline-block';
+            saveEmployeeChangesButton.style.display = 'none';
+            cancelEditEmployeeButton.style.display = 'none';
+            deleteEmployeeConfirmation.style.display = 'none'; 
+            detailsStatusMessageModal.textContent = ''; 
+        }
+
+        editEmployeeButton.onclick = () => {
+            const employee = employeesData.find(emp => emp.id === currentEditingEmployeeId);
+            if (employee) {
+                renderEmployeeDetails(employee, true); 
+                showStatus(`Mengedit data ${employee.name}`, 'info', 'details-modal');
+            }
+        };
+
+        cancelEditEmployeeButton.onclick = () => {
+            const employee = employeesData.find(emp => emp.id === currentEditingEmployeeId);
+            if (employee) {
+                renderEmployeeDetails(employee, false); 
+                showStatus(`Edit dibatalkan untuk ${employee.name}`, 'info', 'details-modal');
+            }
+        };
+        
+        saveEmployeeChangesButton.onclick = async () => {
+            if (!db || !currentEditingEmployeeId) return;
+            
+            const updatedName = document.getElementById('detail-name-edit').value.trim();
+            const updatedAddress = document.getElementById('detail-address-edit').value.trim();
+            const updatedDoj = document.getElementById('detail-doj-edit').value;
+            const updatedPhone = document.getElementById('detail-phone-edit').value.trim();
+
+            if (!updatedName || !updatedAddress || !updatedDoj || !updatedPhone) {
+                showStatus("Semua field wajib diisi saat mengedit.", 'error', 'details-modal');
+                return;
+            }
+
+            const employeeDocRef = doc(db, `artifacts/${appId}/public/data/employees`, currentEditingEmployeeId);
+            try {
+                await updateDoc(employeeDocRef, {
+                    name: updatedName,
+                    address: updatedAddress,
+                    doj: updatedDoj,
+                    phone: updatedPhone
+                });
+                // Listener akan otomatis update tabel dan data lokal
+                showStatus(`Data ${updatedName} berhasil diperbarui.`, 'success', 'details-modal');
+                showStatus(`Data ${updatedName} diperbarui di tabel.`, 'success');
+                // Temukan employee yang diupdate di cache lokal untuk render ulang detailnya
+                const updatedEmployee = employeesData.find(emp => emp.id === currentEditingEmployeeId);
+                if (updatedEmployee) renderEmployeeDetails(updatedEmployee, false);
+
+            } catch (error) {
+                console.error("Error updating employee: ", error);
+                showStatus("Gagal memperbarui data: " + error.message, 'error', 'details-modal');
+            }
+        };
+
+        deleteEmployeeButton.onclick = () => {
+            deleteEmployeeConfirmation.style.display = 'block';
+            editEmployeeButton.style.display = 'none';
+            deleteEmployeeButton.style.display = 'none';
+            saveEmployeeChangesButton.style.display = 'none';
+            cancelEditEmployeeButton.style.display = 'none';
+        };
+
+        cancelDeleteEmployeeButton.onclick = () => {
+            deleteEmployeeConfirmation.style.display = 'none';
+            resetDetailsModalToViewMode(); 
+             if (currentEditingEmployeeId) {
+                const employee = employeesData.find(emp => emp.id === currentEditingEmployeeId);
+                if (employee) renderEmployeeDetails(employee, false); 
+            }
+        };
+
+        confirmDeleteEmployeeButton.onclick = async () => {
+            if (!db || !currentEditingEmployeeId) return;
+            const employeeDocRef = doc(db, `artifacts/${appId}/public/data/employees`, currentEditingEmployeeId);
+            try {
+                await deleteDoc(employeeDocRef);
+                // Listener akan otomatis update tabel dan data lokal
+                employeeDetailsModal.style.display = 'none';
+                showStatus(`Karyawan dengan ID ${currentEditingEmployeeId} berhasil dihapus.`, 'success');
+                currentEditingEmployeeId = null;
+                resetDetailsModalToViewMode(); 
+            } catch (error) {
+                console.error("Error deleting employee: ", error);
+                showStatus("Gagal menghapus karyawan: " + error.message, 'error', 'details-modal');
+                 resetDetailsModalToViewMode(); 
+                 if (currentEditingEmployeeId) {
+                    const employee = employeesData.find(emp => emp.id === currentEditingEmployeeId);
+                    if (employee) renderEmployeeDetails(employee, false); 
+                }
+            }
+        };
+
+
         // --- Fungsi Absensi (Berlaku untuk QR & Manual) ---
-        function addAttendanceEntry(scannedId, source) {
-            const now = new Date();
-            const timestamp = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " - " + getCurrentDateString();
-            const dailyScanKey = `${scannedId}-${getCurrentDateString()}`;
+        async function addAttendanceEntry(scannedId, source) {
+            if (!db || !userId) {
+                showStatus("Firestore tidak siap atau user tidak terautentikasi.", 'error', (source === "QR Scan" ? 'scan-modal' : 'main'));
+                return;
+            }
 
             const employee = employeesData.find(emp => emp.id === scannedId);
 
@@ -446,34 +868,88 @@
                 return;
             }
 
-            if (scannedIDsToday.has(dailyScanKey)) {
-                showStatus(`Karyawan ${employee.name} (ID: ${scannedId}) sudah absen hari ini.`, 'error', (source === "QR Scan" ? 'scan-modal' : 'main'));
+            const todayDate = getCurrentDateString(); // YYYY-MM-DD
+            const dailyScanKey = `${scannedId}-${todayDate}`;
+            const dailyScanDocRef = doc(db, `artifacts/${appId}/public/data/daily_scans`, dailyScanKey);
+
+            try {
+                const dailyScanSnap = await getDoc(dailyScanDocRef);
+                if (dailyScanSnap.exists()) {
+                    showStatus(`Karyawan ${employee.name} sudah absen hari ini.`, 'error', (source === "QR Scan" ? 'scan-modal' : 'main'));
+                    if (source === "Manual") manualIdInput.value = '';
+                    return;
+                }
+
+                // Catat absensi
+                const attendanceLogRef = collection(db, `artifacts/${appId}/public/data/attendance_logs`);
+                await addDoc(attendanceLogRef, {
+                    employeeId: scannedId,
+                    employeeName: employee.name,
+                    timestamp: Timestamp.now(),
+                    dateScanned: todayDate, // Simpan tanggal untuk query log harian
+                    source: source
+                });
+
+                // Tandai sudah scan hari ini
+                await setDoc(dailyScanDocRef, { scannedAt: Timestamp.now() });
+
+                // Update poin karyawan
+                const employeeDocRef = doc(db, `artifacts/${appId}/public/data/employees`, scannedId);
+                await updateDoc(employeeDocRef, {
+                    points: (employee.points || 0) + 1
+                });
+                
+                // Listener untuk employee akan update UI poin
+                // Listener untuk log absensi akan update UI log
+
+                const successMsg = `Absen ${employee.name} berhasil via ${source}. +1 Poin!`;
+                showStatus(successMsg, 'success', (source === "QR Scan" ? 'scan-modal' : 'main'));
+                if (source === "QR Scan") showStatus(successMsg, 'success'); 
+                
                 if (source === "Manual") manualIdInput.value = '';
-                return;
-            }
+                
+                if (source === "QR Scan") {
+                    setTimeout(() => {
+                        if (scanQrModal.style.display === 'block') { 
+                             // closeScanQrModal(); // Opsional
+                        }
+                    }, 1500);
+                }
 
-            employee.points += 1; 
-            scannedIDsToday.add(dailyScanKey);
-            updateEmployeeListTable();
-
-            const listItem = document.createElement('li');
-            listItem.innerHTML = `<span class="id-data">${employee.id} (${employee.name} - via ${source})</span> <span class="timestamp">${timestamp} (+1 Poin)</span>`;
-            attendanceLogList.prepend(listItem);
-            
-            const successMsg = `Absen ${employee.name} (ID: ${scannedId}) berhasil via ${source}. +1 Poin!`;
-            showStatus(successMsg, 'success', (source === "QR Scan" ? 'scan-modal' : 'main'));
-            if (source === "QR Scan") showStatus(successMsg, 'success'); 
-            
-            if (source === "Manual") manualIdInput.value = '';
-            
-            if (source === "QR Scan") {
-                setTimeout(() => {
-                    if (scanQrModal.style.display === 'block') { 
-                         // closeScanQrModal(); // Opsional
-                    }
-                }, 1500);
+            } catch (error) {
+                console.error("Error processing attendance: ", error);
+                showStatus("Gagal mencatat absensi: " + error.message, 'error', (source === "QR Scan" ? 'scan-modal' : 'main'));
             }
         }
+        
+        function setupAttendanceLogListener() {
+            if (!db || !userId) return;
+            const todayDate = getCurrentDateString();
+            const logsRef = collection(db, `artifacts/${appId}/public/data/attendance_logs`);
+            const q = query(logsRef, where("dateScanned", "==", todayDate)); // Order by timestamp jika perlu
+
+            onSnapshot(q, (querySnapshot) => {
+                attendanceLogList.innerHTML = ''; // Kosongkan list
+                const logsToday = [];
+                querySnapshot.forEach((doc) => {
+                    logsToday.push(doc.data());
+                });
+                // Urutkan berdasarkan timestamp descending (terbaru di atas)
+                logsToday.sort((a, b) => b.timestamp.seconds - a.timestamp.seconds);
+
+                logsToday.forEach(log => {
+                    const listItem = document.createElement('li');
+                    const logTimestamp = log.timestamp.toDate();
+                    const timeStr = logTimestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    listItem.innerHTML = `<span class="employee-name-log">${log.employeeName} (via ${log.source})</span> <span class="timestamp">${timeStr} (+1 Poin)</span>`;
+                    attendanceLogList.appendChild(listItem); // Prepend jika ingin terbaru di atas dan tidak sort
+                });
+            }, (error) => {
+                console.error("Error listening to attendance logs: ", error);
+                showStatus("Gagal memuat log absensi hari ini.", "error");
+            });
+        }
+
 
         // --- Fungsi Pemindaian QR (di Modal) ---
         function tickModal() {
@@ -491,7 +967,7 @@
                 const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
                 if (code && code.data) {
-                    addAttendanceEntry(code.data, "QR Scan");
+                    addAttendanceEntry(code.data, "QR Scan"); // Fungsi ini sudah async
                 }
             } catch (err) { /* console.error("Error decoding QR:", err); */ }
             
@@ -543,16 +1019,17 @@
         addManualButton.addEventListener('click', () => {
             const id = manualIdInput.value.trim();
             if (id) {
-                addAttendanceEntry(id, "Manual");
+                addAttendanceEntry(id, "Manual"); // Fungsi ini sudah async
             } else {
                 showStatus("ID manual tidak boleh kosong.", 'error');
             }
         });
 
-        // Inisialisasi
+        // Inisialisasi Aplikasi
         window.addEventListener('load', () => {
-            updateEmployeeListTable(); 
-            showStatus("Selamat datang! Pilih aksi di atas.", 'info');
+            initializeFirebase(); 
+            // updateEmployeeListTableDOM(); // Akan dipanggil oleh listener setelah data dimuat
+            // showStatus("Selamat datang! Pilih aksi di atas.", 'info'); // Status akan diupdate oleh Firebase init
         });
     </script>
 </body>
