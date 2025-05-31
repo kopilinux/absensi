@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Absensi Skeuomorphic V3 (Modal)</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .app-container {
+            background: linear-gradient(145deg, #f0f0f0, #cacaca);
+            border-radius: 20px;
+            box-shadow: 10px 10px 20px #b0b0b0, -10px -10px 20px #ffffff;
+            padding: 25px;
+            width: 90%;
+            max-width: 700px; 
+            display: flex;
+            flex-direction: column;
+            gap: 20px; 
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .header h1 {
+            font-size: 1.8em; 
+            color: #444;
+            text-shadow: 1px 1px 1px #fff;
+            margin-bottom: 15px;
+        }
+        
+        .header-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .section {
+            background: #e8e8e8;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: inset 5px 5px 10px #c5c5c5, inset -5px -5px 10px #ffffff;
+        }
+        
+        .section h2, .section h3 {
+            text-align: center;
+            color: #555;
+            text-shadow: 1px 1px 0px #fff;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        /* Tombol Umum */
+        button {
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.95em; 
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            background: linear-gradient(145deg, #efefef, #c7c7c7);
+            box-shadow: 6px 6px 12px #b9b9b9, -6px -6px 12px #ffffff;
+            transition: all 0.1s ease-in-out;
+            font-weight: bold;
+        }
+        button:hover {
+            background: linear-gradient(145deg, #e0e0e0, #bababa);
+        }
+        button:active {
+            background: linear-gradient(145deg, #c7c7c7, #efefef);
+            box-shadow: inset 4px 4px 8px #b9b9b9, inset -4px -4px 8px #ffffff;
+            color: #333;
+        }
+        button.stop-scan { 
+            background: linear-gradient(145deg, #ffdddd, #ffb0b0); color: #a00;
+        }
+        button.stop-scan:hover { background: linear-gradient(145deg, #ffcccc, #ffaaaa); }
+        button.stop-scan:active {
+            background: linear-gradient(145deg, #ffb0b0, #ffdddd);
+            box-shadow: inset 4px 4px 8px #d99a9a, inset -4px -4px 8px #ffffff;
+        }
+        button.modal-close-button { 
+            background: linear-gradient(145deg, #f0b0b0, #e09090); color: #fff;
+            padding: 8px 15px; font-size: 0.85em;
+        }
+         button.modal-close-button:hover { background: linear-gradient(145deg, #e0a0a0, #d08080); }
+
+
+        input[type="text"] {
+            font-family: 'Roboto', sans-serif;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            background: #e8e8e8;
+            box-shadow: inset 4px 4px 8px #c0c0c0, inset -4px -4px 8px #ffffff;
+            width: calc(100% - 26px); 
+            max-width: 300px;
+            font-size: 1em;
+            color: #333;
+            margin-bottom: 10px; 
+        }
+        input[type="text"]:focus {
+            outline: none;
+            box-shadow: inset 6px 6px 12px #b9b9b9, inset -6px -6px 12px #ffffff, 0 0 5px #88aaff;
+        }
+
+        #status-message {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: bold;
+            min-height: 20px;
+        }
+        .status-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; box-shadow: 0 0 10px #c3e6cb; }
+        .status-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; box-shadow: 0 0 10px #f5c6cb; }
+        .status-info { background-color: #cce5ff; color: #004085; border: 1px solid #b8daff; box-shadow: 0 0 10px #b8daff; }
+
+        /* Modal Styling */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.6); 
+            padding-top: 60px;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #f0f0f0, #cacaca);
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.3), -10px -10px 20px rgba(255,255,255,0.1); 
+            width: 85%;
+            max-width: 550px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center; 
+        }
+        .modal-content h3 { margin-top: 0; color: #444; text-shadow: 1px 1px 1px #fff; }
+        .modal-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        #camera-feed-modal { 
+            width: 100%;
+            max-width: 320px;
+            height: auto;
+            border-radius: 10px;
+            border: 4px solid #bbb;
+            box-shadow: 0 0 8px rgba(0,0,0,0.15);
+            background-color: #333;
+        }
+        #generated-qr-code-container-modal {
+            margin-top: 10px; padding: 10px; background: #ddd; border-radius: 8px;
+            box-shadow: inset 2px 2px 5px #bbb, inset -2px -2px 5px #fff;
+            min-height: 130px; display: flex; justify-content: center; align-items: center;
+            width: auto; 
+        }
+        #generated-qr-code-img-modal {
+            max-width: 160px; height: auto; border: 3px solid #fff; border-radius: 5px;
+        }
+        .modal-button-group { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top:10px;}
+
+        /* Daftar Hadir & Karyawan */
+        #attendance-log-list {
+            list-style-type: none; padding: 0; 
+            max-height: 200px; /* Disesuaikan dari 180px */
+            overflow-y: auto; /* Membuat scroll jika konten melebihi max-height */
+            border: 1px solid #d0d0d0; border-radius: 10px; background: #e0e0e0;
+            padding: 10px; box-shadow: inset 3px 3px 6px #bcbcbc, inset -3px -3px 6px #ffffff;
+        }
+        #attendance-log-list li {
+            background: linear-gradient(145deg, #f5f5f5, #dcdcdc); margin-bottom: 8px;
+            padding: 10px 15px; border-radius: 8px;
+            box-shadow: 4px 4px 8px #c8c8c8, -4px -4px 8px #ffffff;
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.9em;
+        }
+        #attendance-log-list li .id-data { font-weight: bold; color: #337ab7; }
+        #attendance-log-list li .timestamp { font-size: 0.8em; color: #777; }
+
+        .table-container {
+            max-height: 250px; /* Disesuaikan dari 220px */
+            overflow-y: auto; /* Membuat scroll jika konten melebihi max-height */
+            padding-right: 5px; 
+            background: #e0e0e0; border-radius: 10px; padding: 10px;
+            box-shadow: inset 3px 3px 6px #bcbcbc, inset -3px -3px 6px #ffffff;
+        }
+        #employee-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        #employee-table th, #employee-table td {
+            padding: 9px 10px; text-align: left;
+            background: linear-gradient(145deg, #f5f5f5, #dcdcdc);
+            box-shadow: 3px 3px 6px #c8c8c8, -3px -3px 6px #ffffff; font-size: 0.9em;
+        }
+        #employee-table th {
+            background: linear-gradient(145deg, #e0e0e0, #c0c0c0); color: #444;
+            font-weight: bold; text-shadow: 1px 1px 0px #fff;
+        }
+        #employee-table th:first-child, #employee-table td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        #employee-table th:last-child, #employee-table td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+        #employee-table td.points-cell { font-weight: bold; text-align: center; color: #2a7e2a; }
+
+        #qr-canvas-modal { display: none; } 
+
+        @media (max-width: 600px) {
+            .app-container { padding: 15px; gap: 15px; }
+            .header h1 { font-size: 1.5em; }
+            .header-actions { gap: 10px; }
+            .header-actions button { padding: 8px 15px; font-size: 0.85em; }
+            .modal-content { width: 90%; padding: 20px; }
+            #camera-feed-modal { max-width: 280px; }
+            #generated-qr-code-img-modal { max-width: 130px; }
+            input[type="text"] { padding: 10px; font-size: 0.9em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>Absensi & Poin Karyawan</h1>
+            <div class="header-actions">
+                <button id="open-scan-modal-button">Pindai QR Absensi</button>
+                <button id="open-register-modal-button">Registrasi Karyawan</button>
+            </div>
+        </div>
+        
+        <div id="status-message">Selamat datang! Pilih aksi di atas.</div>
+
+        <div class="section manual-entry-section">
+            <h3>Input Absensi Manual</h3>
+            <input type="text" id="manual-id-input" placeholder="Masukkan ID Karyawan">
+            <button id="add-manual-button">Tambah Manual & Dapat Poin</button>
+        </div>
+
+        <div class="section attendance-log-section">
+            <h2>Log Absensi Hari Ini</h2>
+            <ul id="attendance-log-list"></ul>
+        </div>
+
+        <div class="section employee-list-section">
+            <h2>Daftar Karyawan & Poin</h2>
+            <div class="table-container">
+                <table id="employee-table">
+                    <thead>
+                        <tr><th>ID Karyawan</th><th>Nama</th><th>Poin</th></tr>
+                    </thead>
+                    <tbody id="employee-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="scan-qr-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Pindai QR Absensi</h3>
+                <button class="modal-close-button" id="close-scan-modal-button">&times;</button>
+            </div>
+            <video id="camera-feed-modal" playsinline></video>
+            <canvas id="qr-canvas-modal"></canvas> 
+            <div class="modal-button-group">
+                <button id="start-scan-button-modal">Mulai Pindai</button>
+                <button id="stop-scan-button-modal" class="stop-scan" style="display: none;">Hentikan Pindai</button>
+            </div>
+            <div id="scan-status-message-modal" style="text-align:center; margin-top:10px; font-weight:bold; min-height:18px;"></div>
+        </div>
+    </div>
+
+    <div id="register-employee-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrasi Karyawan & Buat QR</h3>
+                <button class="modal-close-button" id="close-register-modal-button">&times;</button>
+            </div>
+            <input type="text" id="employee-id-input-modal" placeholder="ID Karyawan (unik)">
+            <input type="text" id="employee-name-input-modal" placeholder="Nama Karyawan">
+            <button id="register-employee-button-modal">Daftarkan & Buat QR</button>
+            <div id="generated-qr-code-container-modal">
+                <img id="generated-qr-code-img-modal" alt="QR Code akan muncul di sini">
+            </div>
+             <div id="register-status-message-modal" style="text-align:center; margin-top:10px; font-weight:bold; min-height:18px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Elemen DOM Utama
+        const manualIdInput = document.getElementById('manual-id-input');
+        const addManualButton = document.getElementById('add-manual-button');
+        const statusMessage = document.getElementById('status-message'); 
+        const attendanceLogList = document.getElementById('attendance-log-list');
+        const employeeTableBody = document.getElementById('employee-table-body');
+
+        // Elemen DOM Modal Scan QR
+        const scanQrModal = document.getElementById('scan-qr-modal');
+        const openScanModalButton = document.getElementById('open-scan-modal-button');
+        const closeScanModalButton = document.getElementById('close-scan-modal-button');
+        const videoElementModal = document.getElementById('camera-feed-modal');
+        const qrCanvasElementModal = document.getElementById('qr-canvas-modal');
+        const qrCanvasModal = qrCanvasElementModal.getContext('2d', { willReadFrequently: true });
+        const startScanButtonModal = document.getElementById('start-scan-button-modal');
+        const stopScanButtonModal = document.getElementById('stop-scan-button-modal');
+        const scanStatusMessageModal = document.getElementById('scan-status-message-modal');
+
+        // Elemen DOM Modal Registrasi
+        const registerEmployeeModal = document.getElementById('register-employee-modal');
+        const openRegisterModalButton = document.getElementById('open-register-modal-button');
+        const closeRegisterModalButton = document.getElementById('close-register-modal-button');
+        const employeeIdInputModal = document.getElementById('employee-id-input-modal');
+        const employeeNameInputModal = document.getElementById('employee-name-input-modal');
+        const registerEmployeeButtonModal = document.getElementById('register-employee-button-modal');
+        const generatedQrCodeImgModal = document.getElementById('generated-qr-code-img-modal');
+        const registerStatusMessageModal = document.getElementById('register-status-message-modal');
+
+        // State Aplikasi
+        let stream = null;
+        let scanning = false;
+        let scannedIDsToday = new Set(); 
+        let employeesData = []; 
+
+        // --- Fungsi Utilitas ---
+        function showStatus(message, type = 'info', target = 'main') {
+            let el;
+            if (target === 'scan-modal') el = scanStatusMessageModal;
+            else if (target === 'register-modal') el = registerStatusMessageModal;
+            else el = statusMessage;
+
+            el.textContent = message;
+            el.className = ''; 
+            if (type === 'success') el.classList.add('status-success');
+            else if (type === 'error') el.classList.add('status-error');
+            else el.classList.add('status-info');
+        }
+
+        function getCurrentDateString() { return new Date().toLocaleDateString('id-ID'); }
+
+        // --- Modal Handling ---
+        openScanModalButton.onclick = () => { scanQrModal.style.display = 'block'; showStatus("Arahkan kamera ke QR Code.", 'info', 'scan-modal'); };
+        closeScanModalButton.onclick = closeScanQrModal;
+        
+        openRegisterModalButton.onclick = () => { registerEmployeeModal.style.display = 'block'; showStatus("Isi detail karyawan.", 'info', 'register-modal'); };
+        closeRegisterModalButton.onclick = () => { registerEmployeeModal.style.display = 'none'; generatedQrCodeImgModal.src = ''; registerStatusMessageModal.textContent = ''; };
+
+        window.onclick = (event) => {
+            if (event.target == scanQrModal) closeScanQrModal();
+            if (event.target == registerEmployeeModal) {
+                registerEmployeeModal.style.display = 'none';
+                generatedQrCodeImgModal.src = ''; 
+                registerStatusMessageModal.textContent = '';
+            }
+        };
+        
+        function closeScanQrModal() {
+            scanQrModal.style.display = 'none';
+            stopScan(); 
+            scanStatusMessageModal.textContent = '';
+        }
+
+
+        // --- Fungsi Registrasi Karyawan (di Modal) ---
+        function registerEmployee() {
+            const id = employeeIdInputModal.value.trim();
+            const name = employeeNameInputModal.value.trim();
+
+            if (!id || !name) {
+                showStatus("ID dan Nama Karyawan tidak boleh kosong.", 'error', 'register-modal');
+                return;
+            }
+            if (employeesData.some(emp => emp.id === id)) {
+                showStatus(`Karyawan dengan ID ${id} sudah terdaftar.`, 'error', 'register-modal');
+                return;
+            }
+
+            const newEmployee = { id, name, points: 0 };
+            employeesData.push(newEmployee);
+            
+            try {
+                let tempCanvas = document.createElement('canvas');
+                new QRious({ element: tempCanvas, value: id, size: 160, level: 'H'}); 
+                generatedQrCodeImgModal.src = tempCanvas.toDataURL();
+
+                showStatus(`Karyawan ${name} (ID: ${id}) berhasil didaftarkan.`, 'success', 'register-modal');
+                showStatus(`Karyawan ${name} terdaftar.`, 'success'); 
+                employeeIdInputModal.value = '';
+                employeeNameInputModal.value = '';
+                updateEmployeeListTable();
+            } catch (e) {
+                console.error("Error generating QR Code:", e);
+                showStatus("Gagal membuat QR Code: " + e.message, 'error', 'register-modal');
+            }
+        }
+
+        // --- Fungsi Update Daftar Karyawan di Tabel Utama ---
+        function updateEmployeeListTable() {
+            employeeTableBody.innerHTML = ''; 
+            employeesData.forEach(emp => {
+                const row = employeeTableBody.insertRow();
+                row.insertCell().textContent = emp.id;
+                row.insertCell().textContent = emp.name;
+                const pointsCell = row.insertCell();
+                pointsCell.textContent = emp.points;
+                pointsCell.classList.add('points-cell');
+            });
+        }
+        
+        // --- Fungsi Absensi (Berlaku untuk QR & Manual) ---
+        function addAttendanceEntry(scannedId, source) {
+            const now = new Date();
+            const timestamp = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " - " + getCurrentDateString();
+            const dailyScanKey = `${scannedId}-${getCurrentDateString()}`;
+
+            const employee = employeesData.find(emp => emp.id === scannedId);
+
+            if (!employee) {
+                showStatus(`ID Karyawan ${scannedId} tidak terdaftar. Absensi gagal.`, 'error', (source === "QR Scan" ? 'scan-modal' : 'main'));
+                if (source === "Manual") manualIdInput.value = '';
+                return;
+            }
+
+            if (scannedIDsToday.has(dailyScanKey)) {
+                showStatus(`Karyawan ${employee.name} (ID: ${scannedId}) sudah absen hari ini.`, 'error', (source === "QR Scan" ? 'scan-modal' : 'main'));
+                if (source === "Manual") manualIdInput.value = '';
+                return;
+            }
+
+            employee.points += 1; 
+            scannedIDsToday.add(dailyScanKey);
+            updateEmployeeListTable();
+
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `<span class="id-data">${employee.id} (${employee.name} - via ${source})</span> <span class="timestamp">${timestamp} (+1 Poin)</span>`;
+            attendanceLogList.prepend(listItem);
+            
+            const successMsg = `Absen ${employee.name} (ID: ${scannedId}) berhasil via ${source}. +1 Poin!`;
+            showStatus(successMsg, 'success', (source === "QR Scan" ? 'scan-modal' : 'main'));
+            if (source === "QR Scan") showStatus(successMsg, 'success'); 
+            
+            if (source === "Manual") manualIdInput.value = '';
+            
+            if (source === "QR Scan") {
+                setTimeout(() => {
+                    if (scanQrModal.style.display === 'block') { 
+                         // closeScanQrModal(); // Opsional
+                    }
+                }, 1500);
+            }
+        }
+
+        // --- Fungsi Pemindaian QR (di Modal) ---
+        function tickModal() {
+            if (!scanning || videoElementModal.readyState !== videoElementModal.HAVE_ENOUGH_DATA) {
+                if (scanning) requestAnimationFrame(tickModal);
+                return;
+            }
+
+            qrCanvasElementModal.height = videoElementModal.videoHeight;
+            qrCanvasElementModal.width = videoElementModal.videoWidth;
+            qrCanvasModal.drawImage(videoElementModal, 0, 0, qrCanvasElementModal.width, qrCanvasElementModal.height);
+            
+            try {
+                const imageData = qrCanvasModal.getImageData(0, 0, qrCanvasElementModal.width, qrCanvasElementModal.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+
+                if (code && code.data) {
+                    addAttendanceEntry(code.data, "QR Scan");
+                }
+            } catch (err) { /* console.error("Error decoding QR:", err); */ }
+            
+            if (scanning) requestAnimationFrame(tickModal);
+        }
+
+        async function startScan() { 
+            if (scanning) return;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                videoElementModal.srcObject = stream;
+                videoElementModal.setAttribute("playsinline", true);
+                await videoElementModal.play();
+                scanning = true;
+                startScanButtonModal.style.display = 'none';
+                stopScanButtonModal.style.display = 'inline-block';
+                showStatus("Kamera aktif. Arahkan ke kode QR.", 'info', 'scan-modal');
+                requestAnimationFrame(tickModal);
+            } catch (err) {
+                console.error("Error accessing camera: ", err);
+                showStatus("Gagal akses kamera: " + err.message, 'error', 'scan-modal');
+                if (stream) stream.getTracks().forEach(track => track.stop());
+                stream = null; scanning = false;
+                startScanButtonModal.style.display = 'inline-block';
+                stopScanButtonModal.style.display = 'none';
+            }
+        }
+
+        function stopScan() { 
+            if (!scanning && !stream && !videoElementModal.srcObject) return; 
+            scanning = false;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            videoElementModal.srcObject = null; 
+            startScanButtonModal.style.display = 'inline-block';
+            stopScanButtonModal.style.display = 'none';
+            if (scanQrModal.style.display === 'block') { 
+                showStatus("Pemindaian dihentikan.", 'info', 'scan-modal');
+            }
+        }
+        
+        // Event Listeners
+        registerEmployeeButtonModal.addEventListener('click', registerEmployee);
+        startScanButtonModal.addEventListener('click', startScan);
+        stopScanButtonModal.addEventListener('click', stopScan);
+
+        addManualButton.addEventListener('click', () => {
+            const id = manualIdInput.value.trim();
+            if (id) {
+                addAttendanceEntry(id, "Manual");
+            } else {
+                showStatus("ID manual tidak boleh kosong.", 'error');
+            }
+        });
+
+        // Inisialisasi
+        window.addEventListener('load', () => {
+            updateEmployeeListTable(); 
+            showStatus("Selamat datang! Pilih aksi di atas.", 'info');
+        });
+    </script>
+</body>
+</html>
